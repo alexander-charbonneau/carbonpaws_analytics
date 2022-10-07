@@ -1,0 +1,8 @@
+.TVChartContainer {
+	height: 100%;
+	min-height: 600px;
+  
+	@media screen and (max-width: 600px) {
+	  min-height: 200px;
+	}
+}

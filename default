@@ -1,0 +1,115 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    server_name ewd.green www.ewd.green;
+	
+	listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ewd.green/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ewd.green/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+        location / {
+			proxy_pass http://localhost:3000;            
+			proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Origin "";
+        }
+}
+
+
+server {
+
+	server_name stats.carbonpaws.io;
+	
+    location / {
+	root /usr/share/nginx/html;
+	index ewdstats.json;
+	proxy_hide_header Access-Control-Allow-Origin;
+    add_header Access-Control-Allow-Origin $http_origin;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/stats.carbonpaws.io/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/stats.carbonpaws.io/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+
+
+server {
+
+	server_name dev.carbonpaws.io;
+	
+    location / {
+        proxy_pass http://localhost:4420;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/dev.carbonpaws.io/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/dev.carbonpaws.io/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+
+    if ($host = www.ewd.green) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = ewd.green) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+	server_name ewd.green www.ewd.green;
+	listen 80;
+    return 404; # managed by Certbot
+
+}
+
+server {
+    if ($host = carbonpaws.io) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+
+	server_name carbonpaws.io;
+
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}
+
+server {
+    if ($host = dev.carbonpaws.io) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+
+	server_name dev.carbonpaws.io;
+
+
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}
+
